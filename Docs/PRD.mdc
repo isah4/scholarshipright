@@ -1,0 +1,184 @@
+---
+alwaysApply: true
+---
+## 1. Overview  
+ScholarshipRight is an AI-powered system that helps users quickly find structured details about scholarships or grants.  
+Users provide the **name of a scholarship** or **a small detail/keyword**, and the system automatically searches, validates, and responds in a **strict JSON format** consumable by the frontend.  
+
+---
+
+## 2. Goals & Objectives  
+- Allow users to **search scholarships by name or keyword** in a simple interface.  
+- Provide **consistent, machine-readable JSON responses** for integration with frontend and other apps.  
+- Ensure data accuracy by referencing **verified sources**.  
+- Automate updates: expired scholarships are removed or flagged, and new ones are added dynamically.  
+
+---
+
+## 3. Target Users  
+- Students (Bachelor, Masters, PhD, Postdoctoral).  
+- Researchers and professionals seeking funding.  
+- Organizations/platforms integrating with scholarship search APIs.  
+
+---
+
+## 4. User Flow  
+1. **Input:** User types a scholarship name or a small detail (e.g., "MEXT Japan 2026").  
+2. **Processing:**  
+   - The AI searches trusted sources.  
+   - Extracts relevant scholarship details.  
+   - Formats them into the predefined JSON structure.  
+3. **Output:** JSON response returned to the frontend.  
+4. **Display:** Frontend parses and displays scholarship details in user-friendly UI.  
+
+---
+
+## 5. JSON Response Format (Strict)  
+```json
+{
+  "title": "", // Full name of the scholarship
+  "scholarship_type": "", // "fully funded", "partial high", "partial low"
+  "degree_levels": [], // e.g. ["Bachelor", "Masters", "PhD", "Postdoctoral"]
+  "host_country": "", // Country where the scholarship is hosted
+  "benefits": {
+    "tuition": "", // tuition coverage details
+    "stipend": "", // monthly/annual stipend amount if any
+    "travel": "", // airfare or transport coverage
+    "insurance": "", // health/medical insurance coverage
+    "others": [] // any additional benefits (books, materials, child care, etc.)
+  },
+  "eligible_countries": "", // "All countries" or list of specific eligible countries
+  "requirements": {
+    "academic": "", // GPA, previous degree requirement
+    "age_limit": "", // e.g. "Born after April 1991" or "No age limit"
+    "language": "", // English, Japanese, IELTS/TOEFL required etc.
+    "others": [] // other conditions (gender, return-home commitment, etc.)
+  },
+  "application_timeline": {
+    "opening_date": "", // when applications open
+    "deadline": "", // official deadline date
+    "result_announcement": "" // notification period if available
+  },
+  "application_link": "", // exact link to application portal/page
+  "application_procedure": [], // step-by-step procedure to apply
+  "selection_process": [], // details of evaluation or interview rounds
+  "renewal": "", // renewal rules if applicable (e.g. yearly renewal)
+  "source": [] // list of source links
+}
+````
+
+---
+
+## 6. Features
+
+* **Scholarship Search AI:** Finds scholarships based on name/keywords.
+* **Structured Data Extraction:** Ensures strict JSON schema compliance.
+* **Source Verification:** Links back to original sources.
+* **Expired Scholarship Handling:** Removes or flags expired opportunities.
+* **Scalability:** Support for multiple languages and global scholarships.
+
+---
+
+## 7. Stack Flow (Technology Architecture)
+
+### **Frontend**
+
+* **Framework:** Next.js 14 (React-based)
+* **UI Components:** TailwindCSS + shadcn/ui components
+* **Data Handling:** Fetch API for HTTP requests
+* **Styling:** CSS Modules + Tailwind CSS
+* **Role:**
+  * Provides search input box
+  * Displays parsed scholarship JSON results
+  * Responsive design for web and mobile
+
+### **Backend API Layer**
+⚡ **Node.js/Express Server Implementation**
+
+* **Tech Stack:** Node.js + Express.js + TypeScript
+* **Input Processing:** Express middleware for request validation
+* **Search API Integration:** SerpAPI / Custom Google Search
+* **Web Scraping:** Playwright for dynamic content extraction
+* **AI Processing:** OpenAI GPT API + LangChain-like processing
+* **Data Validation:** Zod schema validation for JSON compliance
+* **Response Handling:** Structured JSON output with error handling
+* **Role:**
+  * Receives queries from Next.js frontend
+  * Orchestrates AI/Agent service calls
+  * Validates and returns JSON response
+  * Handles rate limiting and security
+
+### **AI Agent (Core Engine)**
+
+* **Tech:** Node.js + OpenAI API integration
+* **Model:** GPT-4 powered + Web Scraping/Retrieval-Augmented Generation (RAG)
+* **Responsibilities:**
+  * Search scholarship websites/blogs/APIs
+  * Parse and normalize data
+  * Strictly map output into JSON schema
+  * Flag expired opportunities
+  * Handle multiple language inputs
+
+### **Scraping & Data Collection**
+
+* **Tools:** Playwright (Node.js automation)
+* **Sources:**
+  * Official scholarship portals
+  * Aggregator blogs (Scholarship Region, StudyAbroad, etc.)
+  * University websites
+* **Role:** Feed structured/unstructured data to AI agent for processing
+
+### **Data Pipeline**
+
+* Raw Data → Cleaning/Validation → AI Extraction → JSON Response → Express API → Next.js Frontend
+
+---
+
+## 8. Non-Functional Requirements
+
+* **Accuracy:** Minimize hallucinations with verified sources.
+* **Performance:** Return results within 3–5 seconds.
+* **Scalability:** Handle thousands of requests per day.
+* **Security:** Sanitize inputs and prevent injection attacks.
+* **Reliability:** 99.5%+ uptime with graceful error handling.
+
+---
+
+## 9. Interfaces
+
+* **Frontend (Next.js):**
+  * Text input box for scholarship name/detail.
+  * Display parsed scholarship details from JSON.
+  * Responsive UI with modern design.
+* **Backend (Express.js):**
+  * RESTful API endpoints for search functionality.
+  * Handles search and data extraction.
+  * Returns JSON strictly matching schema.
+
+---
+
+## 10. Success Metrics
+
+* 95%+ accuracy of scholarship details compared to official sources.
+* JSON schema compliance rate: 100%.
+* System uptime: 99.5%+.
+* User satisfaction: 4.5/5 average rating.
+* API response time: <5 seconds.
+
+---
+
+## 11. Future Enhancements
+
+* API access for third-party developers.
+* Scholarship recommendation engine based on user profile.
+* Multi-language support.
+* Notifications for approaching deadlines.
+* Database integration for caching and user management.
+* Authentication system for personalized experiences.
+
+---
+
+```
+
+
+```
