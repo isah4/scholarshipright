@@ -62,19 +62,68 @@ class SearchService {
     async searchMultiplePrompts(prompts, topKPerPrompt = 5) {
         if (!prompts || prompts.length === 0)
             return [];
-        const tasks = prompts.map((p) => this.queue.add(() => this.performWebSearch(p, topKPerPrompt)));
+        logger_1.logger.info('🚀 Parallel Search - Starting multiple prompt search', {
+            promptsCount: prompts.length,
+            topKPerPrompt,
+            prompts: prompts
+        });
+        const startTime = Date.now();
+        const tasks = prompts.map((prompt, index) => {
+            logger_1.logger.info(`📋 Parallel Search - Queuing task ${index + 1}`, {
+                taskId: index + 1,
+                prompt: prompt.substring(0, 80) + '...',
+                promptLength: prompt.length
+            });
+            return this.queue.add(() => this.performWebSearch(prompt, topKPerPrompt));
+        });
+        logger_1.logger.info('⚡ Parallel Search - Executing all tasks simultaneously', {
+            totalTasks: tasks.length,
+            expectedResults: prompts.length * topKPerPrompt
+        });
         const results = await Promise.allSettled(tasks);
+        const executionTime = Date.now() - startTime;
         const flat = [];
-        for (const r of results) {
-            if (r.status === 'fulfilled' && Array.isArray(r.value))
-                flat.push(...r.value);
+        const successful = [];
+        const failed = [];
+        for (let i = 0; i < results.length; i++) {
+            const result = results[i];
+            if (result.status === 'fulfilled' && Array.isArray(result.value)) {
+                flat.push(...result.value);
+                successful.push(i + 1);
+                logger_1.logger.info(`✅ Parallel Search - Task ${i + 1} completed successfully`, {
+                    taskId: i + 1,
+                    resultsCount: result.value.length,
+                    prompt: prompts[i].substring(0, 60) + '...'
+                });
+            }
+            else if (result.status === 'rejected') {
+                failed.push(i + 1);
+                logger_1.logger.error(`❌ Parallel Search - Task ${i + 1} failed`, {
+                    taskId: i + 1,
+                    prompt: prompts[i].substring(0, 60) + '...',
+                    error: result.reason
+                });
+            }
         }
+        logger_1.logger.info('📊 Parallel Search - Results summary', {
+            totalTime: executionTime,
+            successfulTasks: successful.length,
+            failedTasks: failed.length,
+            totalResults: flat.length,
+            expectedResults: prompts.length * topKPerPrompt,
+            successRate: `${Math.round((successful.length / prompts.length) * 100)}%`
+        });
         const byUrl = new Map();
         for (const item of flat) {
             if (!byUrl.has(item.link))
                 byUrl.set(item.link, item);
         }
         const urlDeduped = Array.from(byUrl.values());
+        logger_1.logger.info('🧹 Parallel Search - Deduplication results', {
+            beforeDedup: flat.length,
+            afterUrlDedup: urlDeduped.length,
+            duplicatesRemoved: flat.length - urlDeduped.length
+        });
         const byDomain = new Map();
         for (const item of urlDeduped) {
             const domain = this.extractDomain(item.link);
@@ -95,6 +144,11 @@ class SearchService {
                 }
             }
         }
+        logger_1.logger.info('🎯 Parallel Search - Final results', {
+            finalResultsCount: diversified.length,
+            uniqueDomains: byDomain.size,
+            diversityStrategy: 'round-robin domain distribution'
+        });
         return diversified;
     }
     async fetchPage(url) {
@@ -131,21 +185,27 @@ class SearchService {
     }
     async searchScholarships(query, limit = 5) {
         try {
-            logger_1.logger.info('Searching for scholarships', { query, limit });
+            logger_1.logger.info('🔍 Standard Search - Starting single query search', { query, limit });
             if (!this.serpApiKey) {
-                logger_1.logger.info('No API key available, using mock search results');
+                logger_1.logger.info('⚠️ Standard Search - No API key available, using mock search results', { query });
                 return await this.getMockSearchResults(query, limit);
             }
+            logger_1.logger.info('🌐 Standard Search - Calling SERP API', { query, limit });
             const searchResults = await this.performWebSearch(query, limit);
-            logger_1.logger.info('Search completed', {
+            logger_1.logger.info('✅ Standard Search - SERP API completed', {
                 query,
-                resultsCount: searchResults.length
+                resultsCount: searchResults.length,
+                source: 'SERP API'
             });
             return searchResults;
         }
         catch (error) {
-            logger_1.logger.error('Search service error', { error, query });
-            logger_1.logger.info('Falling back to mock search results');
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            logger_1.logger.error('❌ Standard Search - SERP API failed, falling back to mock data', {
+                error: errorMessage,
+                query
+            });
+            logger_1.logger.info('🔄 Standard Search - Using mock search results as fallback', { query });
             return await this.getMockSearchResults(query, limit);
         }
     }

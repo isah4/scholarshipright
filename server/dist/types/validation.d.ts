@@ -293,6 +293,22 @@ export declare const SearchRequestSchema: z.ZodObject<{
     query: string;
     limit?: number | undefined;
 }>;
+export declare const StructuredSearchRequestSchema: z.ZodObject<{
+    query: z.ZodString;
+    structured: z.ZodDefault<z.ZodOptional<z.ZodBoolean>>;
+    locale: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+    depth: z.ZodDefault<z.ZodOptional<z.ZodEnum<["fast", "standard", "deep"]>>>;
+}, "strip", z.ZodTypeAny, {
+    query: string;
+    structured: boolean;
+    locale: string;
+    depth: "fast" | "standard" | "deep";
+}, {
+    query: string;
+    structured?: boolean | undefined;
+    locale?: string | undefined;
+    depth?: "fast" | "standard" | "deep" | undefined;
+}>;
 export declare const SearchResponseSchema: z.ZodObject<{
     success: z.ZodBoolean;
     data: z.ZodArray<z.ZodEffects<z.ZodObject<{
@@ -592,6 +608,7 @@ export declare const ErrorResponseSchema: z.ZodObject<{
     statusCode: number;
 }>;
 export type ValidatedSearchRequest = z.infer<typeof SearchRequestSchema>;
+export type ValidatedStructuredSearchRequest = z.infer<typeof StructuredSearchRequestSchema>;
 export type ValidatedScholarship = z.infer<typeof ScholarshipSchema>;
 export type ValidatedSearchResponse = z.infer<typeof SearchResponseSchema>;
 export type ValidatedErrorResponse = z.infer<typeof ErrorResponseSchema>;

@@ -18,14 +18,42 @@ class ScholarshipController {
                     limit: validatedRequest.limit,
                     ip: req.ip
                 });
+                if (process.env.STRUCTURED_SEARCH_ENABLED === 'true') {
+                    logger_1.logger.info('🔄 Standard search redirected to structured search (STRUCTURED_SEARCH_ENABLED=true)', {
+                        query: validatedRequest.query,
+                        originalEndpoint: '/api/scholarships/search',
+                        redirectedTo: 'structuredSearch'
+                    });
+                    const result = await this.scholarshipService.structuredSearch(validatedRequest.query, undefined, 'standard');
+                    const responseTime = Date.now() - startTime;
+                    logger_1.logger.info('🔄 Redirected search completed successfully', {
+                        query: validatedRequest.query,
+                        responseTime,
+                        resultsCount: result.items?.length || 0,
+                        searchType: 'structured (redirected)'
+                    });
+                    return res.status(200).json({
+                        success: true,
+                        data: result.items || [],
+                        message: `Structured search results for "${validatedRequest.query}" (${result.items?.length || 0} scholarships found)`,
+                        processing_time: responseTime,
+                        total_results: result.items?.length || 0,
+                        _redirected: true,
+                        _searchType: 'structured'
+                    });
+                }
+                logger_1.logger.info('🔍 Proceeding with standard search (STRUCTURED_SEARCH_ENABLED=false)', {
+                    query: validatedRequest.query
+                });
                 const result = await this.scholarshipService.searchScholarships(validatedRequest);
                 const responseTime = Date.now() - startTime;
                 logger_1.logger.info('Search request completed', {
                     query: validatedRequest.query,
                     responseTime,
-                    resultsCount: result.data.length
+                    resultsCount: result.data.length,
+                    searchType: 'standard'
                 });
-                res.status(200).json(result);
+                return res.status(200).json(result);
             }
             catch (error) {
                 const responseTime = Date.now() - startTime;
@@ -35,7 +63,7 @@ class ScholarshipController {
                     body: req.body
                 });
                 if (error instanceof Error) {
-                    res.status(500).json({
+                    return res.status(500).json({
                         success: false,
                         error: 'SEARCH_FAILED',
                         message: error.message,
@@ -43,7 +71,7 @@ class ScholarshipController {
                     });
                 }
                 else {
-                    res.status(500).json({
+                    return res.status(500).json({
                         success: false,
                         error: 'UNKNOWN_ERROR',
                         message: 'An unexpected error occurred',

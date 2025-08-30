@@ -26,6 +26,15 @@ export const config = {
   
   logging: {
     level: process.env.LOG_LEVEL || 'info'
+  },
+
+  structured: {
+    featureFlag: process.env.STRUCTURED_SEARCH_ENABLED === 'true',
+    serpTimeoutMs: parseInt(process.env.SERP_TIMEOUT_MS || '10000', 10),
+    serpConcurrency: parseInt(process.env.SERP_CONCURRENCY || '3', 10),
+    serpIntervalCap: parseInt(process.env.SERP_INTERVAL_CAP || '6', 10),
+    maxPages: parseInt(process.env.MAX_PAGES || '12', 10),
+    model: process.env.STRUCTURED_MODEL || process.env.OPENAI_MODEL || 'gpt-4o-mini'
   }
 };
 

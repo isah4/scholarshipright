@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quick Test - Structured Search Fix</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        .results { margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 4px; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Quick Test - Structured Search Fix</h1>
+    
+    <div class="test">
+        <h3>Test Query:</h3>
+        <input type="text" id="query" value="indonesia scholarship for master" placeholder="Enter query">
+        <button onclick="testSearch()">🔍 Test Search</button>
+        <div id="results" class="results" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function testSearch() {
+            const query = document.getElementById('query').value;
+            const results = document.getElementById('results');
+            
+            results.style.display = 'block';
+            results.textContent = '⏳ Searching...';
+            
+            try {
+                const response = await fetch('http://localhost:3001/api/scholarships/search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, limit: 5 })
+                });
+                
+                const data = await response.json();
+                
+                let output = `✅ Search Completed\n`;
+                output += `Query: ${query}\n`;
+                output += `Search Type: ${data._searchType || 'standard'}\n`;
+                output += `Results: ${data.total_results || 0}\n`;
+                output += `Redirected: ${data._redirected ? 'Yes' : 'No'}\n\n`;
+                
+                if (data.data && data.data.length > 0) {
+                    output += `🎉 Found ${data.data.length} scholarship(s):\n`;
+                    data.data.forEach((sch, i) => {
+                        output += `\n--- ${i+1} ---\n`;
+                        output += `Title: ${sch.title}\n`;
+                        output += `Type: ${sch.scholarship_type}\n`;
+                        output += `Country: ${sch.host_country}\n`;
+                    });
+                } else {
+                    output += `⚠️ No scholarships found\n`;
+                    if (data.validationErrors) {
+                        output += `Validation Errors: ${data.validationErrors.join(', ')}\n`;
+                    }
+                }
+                
+                results.textContent = output;
+            } catch (error) {
+                results.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

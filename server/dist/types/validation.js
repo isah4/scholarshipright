@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ErrorResponseSchema = exports.SearchResponseSchema = exports.SearchRequestSchema = exports.ScholarshipSchema = exports.ApplicationTimelineSchema = exports.ScholarshipRequirementsSchema = exports.ScholarshipBenefitsSchema = void 0;
+exports.ErrorResponseSchema = exports.SearchResponseSchema = exports.StructuredSearchRequestSchema = exports.SearchRequestSchema = exports.ScholarshipSchema = exports.ApplicationTimelineSchema = exports.ScholarshipRequirementsSchema = exports.ScholarshipBenefitsSchema = void 0;
 const zod_1 = require("zod");
 exports.ScholarshipBenefitsSchema = zod_1.z.object({
     tuition: zod_1.z.string().min(1, "Tuition coverage is required").default("Not specified"),
@@ -64,6 +64,12 @@ exports.ScholarshipSchema = zod_1.z.object({
 exports.SearchRequestSchema = zod_1.z.object({
     query: zod_1.z.string().min(1, "Search query is required").max(500, "Search query too long"),
     limit: zod_1.z.number().int().positive().max(10).optional().default(5)
+});
+exports.StructuredSearchRequestSchema = zod_1.z.object({
+    query: zod_1.z.string().min(1, "Search query is required").max(500, "Search query too long"),
+    structured: zod_1.z.boolean().optional().default(true),
+    locale: zod_1.z.string().optional().default("en"),
+    depth: zod_1.z.enum(["fast", "standard", "deep"]).optional().default("standard")
 });
 exports.SearchResponseSchema = zod_1.z.object({
     success: zod_1.z.boolean(),

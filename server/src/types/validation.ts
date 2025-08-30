@@ -74,6 +74,14 @@ export const SearchRequestSchema = z.object({
   limit: z.number().int().positive().max(10).optional().default(5)
 });
 
+// Structured Search Request Schema
+export const StructuredSearchRequestSchema = z.object({
+  query: z.string().min(1, "Search query is required").max(500, "Search query too long"),
+  structured: z.boolean().optional().default(true),
+  locale: z.string().optional().default("en"),
+  depth: z.enum(["fast", "standard", "deep"]).optional().default("standard")
+});
+
 // Search Response Schema
 export const SearchResponseSchema = z.object({
   success: z.boolean(),
@@ -93,6 +101,7 @@ export const ErrorResponseSchema = z.object({
 
 // Type exports
 export type ValidatedSearchRequest = z.infer<typeof SearchRequestSchema>;
+export type ValidatedStructuredSearchRequest = z.infer<typeof StructuredSearchRequestSchema>;
 export type ValidatedScholarship = z.infer<typeof ScholarshipSchema>;
 export type ValidatedSearchResponse = z.infer<typeof SearchResponseSchema>;
 export type ValidatedErrorResponse = z.infer<typeof ErrorResponseSchema>;

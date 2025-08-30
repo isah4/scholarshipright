@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateSearchRequest = exports.validateRequest = void 0;
+exports.validateStructuredSearchRequest = exports.validateSearchRequest = exports.validateRequest = void 0;
 const zod_1 = require("zod");
 const logger_1 = require("../utils/logger");
+const validation_1 = require("../types/validation");
 const validateRequest = (schema) => {
     return async (req, res, next) => {
         try {
@@ -59,4 +60,39 @@ const validateSearchRequest = (req, res, next) => {
     return next();
 };
 exports.validateSearchRequest = validateSearchRequest;
+const validateStructuredSearchRequest = (req, res, next) => {
+    try {
+        const validatedRequest = validation_1.StructuredSearchRequestSchema.parse(req.body);
+        req.body = validatedRequest;
+        return next();
+    }
+    catch (error) {
+        if (error instanceof zod_1.ZodError) {
+            logger_1.logger.warn('Structured search validation error', {
+                errors: error.errors,
+                path: req.path,
+                method: req.method,
+                body: req.body
+            });
+            return res.status(400).json({
+                success: false,
+                error: 'VALIDATION_ERROR',
+                message: 'Request validation failed',
+                details: error.errors.map(err => ({
+                    field: err.path.join('.'),
+                    message: err.message
+                })),
+                statusCode: 400
+            });
+        }
+        logger_1.logger.error('Unexpected structured search validation error', { error, path: req.path });
+        return res.status(400).json({
+            success: false,
+            error: 'VALIDATION_ERROR',
+            message: 'Request validation failed',
+            statusCode: 400
+        });
+    }
+};
+exports.validateStructuredSearchRequest = validateStructuredSearchRequest;
 //# sourceMappingURL=validation.js.map

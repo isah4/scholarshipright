@@ -80,21 +80,68 @@ class ScholarshipService {
     }
     async structuredSearch(query, locale, depth = 'standard') {
         const started = Date.now();
+        logger_1.logger.info('🧠 Structured Search - Starting full pipeline', {
+            query,
+            locale,
+            depth,
+            timestamp: new Date().toISOString()
+        });
+        logger_1.logger.info('🔍 Structured Search - Step 1: Expanding queries with OpenAI', { query });
         const prompts = await this.aiService.queryExpander(query, locale, depth);
+        logger_1.logger.info('✅ Structured Search - Query expansion completed', {
+            query,
+            expandedQueriesCount: prompts.length,
+            expandedQueries: prompts
+        });
+        logger_1.logger.info('🌐 Structured Search - Step 2: Starting parallel SERP search', {
+            query,
+            promptsCount: prompts.length,
+            expectedResults: prompts.length * 5
+        });
         const serp = await this.searchService.searchMultiplePrompts(prompts, 5);
+        logger_1.logger.info('✅ Structured Search - Parallel SERP search completed', {
+            query,
+            serpResultsCount: serp.length,
+            expectedResults: prompts.length * 5
+        });
         const topLinks = serp.slice(0, 12);
+        logger_1.logger.info('📄 Structured Search - Step 3: Fetching web pages', {
+            query,
+            topLinksCount: topLinks.length,
+            maxLinks: 12
+        });
         const pages = await Promise.all(topLinks.map(r => this.searchService.fetchPage(r.link)));
         const normalizedPages = pages.filter((p) => !!p);
+        logger_1.logger.info('📊 Structured Search - Page fetching results', {
+            query,
+            totalPages: topLinks.length,
+            successfulFetches: normalizedPages.length,
+            failedFetches: topLinks.length - normalizedPages.length
+        });
         const evidenceChunks = normalizedPages.flatMap(p => {
             const chunks = [];
             const text = p.text;
-            const maxChunk = 1200;
-            for (let i = 0; i < text.length; i += maxChunk) {
-                chunks.push({ url: p.url, title: p.title, text: text.slice(i, i + maxChunk) });
-                if (chunks.length >= 20)
+            const maxChunk = 3000;
+            const overlap = 500;
+            for (let i = 0; i < text.length; i += (maxChunk - overlap)) {
+                const chunkText = text.slice(i, i + maxChunk);
+                if (chunkText.trim().length > 100) {
+                    chunks.push({
+                        url: p.url,
+                        title: p.title,
+                        text: chunkText
+                    });
+                }
+                if (chunks.length >= 15)
                     break;
             }
             return chunks;
+        });
+        logger_1.logger.info('✂️ Structured Search - Evidence chunking completed', {
+            query,
+            totalChunks: evidenceChunks.length,
+            maxChunksPerPage: 20,
+            chunkSize: 1200
         });
         const scoreChunk = (c) => {
             const allTerms = [query, ...prompts].join(' ').toLowerCase().split(/\s+/).filter(t => t.length > 3);
@@ -110,13 +157,58 @@ class ScholarshipService {
             .sort((a, b) => b.s - a.s)
             .slice(0, 30)
             .map(x => x.c);
+        logger_1.logger.info('🏆 Structured Search - Evidence ranking completed', {
+            query,
+            rankedChunksCount: ranked.length,
+            maxRankedChunks: 30,
+            rankingMethod: 'keyword coverage scoring'
+        });
         const sources = topLinks.map(r => ({ url: r.link, title: r.title, snippet: r.snippet, confidence: 0.5 }));
         const evidence = { prompts, serp: topLinks, chunks: ranked };
-        const result = await this.aiService.synthesizeToJson({ query, sources, evidence }, structured_1.StructuredResponseSchema, query, locale, depth);
+        logger_1.logger.info('🤖 Structured Search - Step 4: AI synthesis and validation', {
+            query,
+            evidenceSize: JSON.stringify(evidence).length,
+            sourcesCount: sources.length,
+            chunksCount: ranked.length,
+            evidencePreview: {
+                promptsCount: prompts.length,
+                serpCount: topLinks.length,
+                chunksCount: ranked.length,
+                sampleChunk: ranked[0] ? {
+                    url: ranked[0].url,
+                    title: ranked[0].title,
+                    textPreview: ranked[0].text.substring(0, 100) + '...'
+                } : null
+            }
+        });
+        const result = await this.aiService.synthesizeToJson(evidence, structured_1.StructuredResponseSchema, query, locale, depth);
         result.query = result.query || query;
         result.locale = result.locale || locale;
         result.depth = result.depth || depth;
-        logger_1.logger.info('structuredSearch completed', { query, items: result.items?.length || 0, ms: Date.now() - started });
+        const totalTime = Date.now() - started;
+        if (result.items && result.items.length > 0) {
+            logger_1.logger.info('🎉 Structured Search - Pipeline completed successfully with scholarships found', {
+                query,
+                itemsCount: result.items.length,
+                totalTime,
+                averageTimePerStep: Math.round(totalTime / 4),
+                sampleItems: result.items.slice(0, 2).map(item => ({
+                    title: item.title,
+                    summary: item.summary?.substring(0, 100) + '...',
+                    eligibilityCount: item.eligibility?.length || 0
+                }))
+            });
+        }
+        else {
+            logger_1.logger.warn('⚠️ Structured Search - Pipeline completed but no scholarships found', {
+                query,
+                itemsCount: 0,
+                totalTime,
+                averageTimePerStep: Math.round(totalTime / 4),
+                validationErrors: result.validationErrors || [],
+                sourcesCount: result.sources?.length || 0
+            });
+        }
         return result;
     }
     prepareRawData(searchResults) {

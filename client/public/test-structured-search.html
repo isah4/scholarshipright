@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Improved Structured Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+        }
+        .query-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .loading {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .metric-label {
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Improved Structured Search</h1>
+    
+    <div class="container">
+        <h2>🔍 Test Queries</h2>
+        <p>Test the improved structured search that now properly extracts scholarship information from evidence chunks.</p>
+        
+        <div class="test-section">
+            <h3>Query 1: Indonesia Scholarships</h3>
+            <input type="text" class="query-input" id="query1" value="indonesia scholarship for master" placeholder="Enter search query">
+            <button class="test-button" onclick="testSearch('query1')">🔍 Test Structured Search</button>
+            <div id="results1" class="results" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Query 2: Computer Science Funding</h3>
+            <input type="text" class="query-input" id="query2" value="computer science scholarships" placeholder="Enter search query">
+            <button class="test-button" onclick="testSearch('query2')">🔍 Test Structured Search</button>
+            <div id="results2" class="results" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Query 3: Women in STEM</h3>
+            <input type="text" class="query-input" id="query3" value="women in stem scholarships" placeholder="Enter search query">
+            <button class="test-button" onclick="testSearch('query3')">🔍 Test Structured Search</button>
+            <div id="results3" class="results" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📊 Expected Improvements</h2>
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value">🎯</div>
+                <div class="metric-label">Scholarship-Focused Queries</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">🔍</div>
+                <div class="metric-label">Evidence Processing</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">🤖</div>
+                <div class="metric-label">AI Synthesis</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">✅</div>
+                <div class="metric-label">Results Found</div>
+            </div>
+        </div>
+        
+        <h3>What We Fixed:</h3>
+        <ul>
+            <li><strong>Query Expansion:</strong> Now generates ONLY scholarship-related search queries</li>
+            <li><strong>Evidence Processing:</strong> Properly chunks and ranks web page content</li>
+            <li><strong>AI Synthesis:</strong> Specialized method to extract scholarship opportunities from evidence</li>
+            <li><strong>Validation:</strong> Better error handling and response repair</li>
+            <li><strong>Logging:</strong> Enhanced visibility into each step of the pipeline</li>
+        </ul>
+    </div>
+
+    <script>
+        async function testSearch(queryId) {
+            const queryInput = document.getElementById(queryId);
+            const resultsDiv = document.getElementById(queryId.replace('query', 'results'));
+            const button = queryInput.nextElementSibling;
+            
+            const query = queryInput.value.trim();
+            if (!query) {
+                alert('Please enter a search query');
+                return;
+            }
+            
+            // Show loading state
+            button.disabled = true;
+            button.textContent = '⏳ Searching...';
+            resultsDiv.style.display = 'block';
+            resultsDiv.className = 'results loading';
+            resultsDiv.innerHTML = '<div class="status">⏳ Searching...</div>Searching for scholarships...';
+            
+            try {
+                const startTime = Date.now();
+                
+                const response = await fetch('http://localhost:3001/api/scholarships/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        limit: 5
+                    })
+                });
+                
+                const responseTime = Date.now() - startTime;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Display results
+                let resultHtml = `<div class="status">✅ Search Completed (${responseTime}ms)</div>`;
+                
+                if (data.success) {
+                    resultHtml += `<div class="info">Search Type: ${data._searchType || 'standard'}</div>`;
+                    resultHtml += `<div class="info">Total Results: ${data.total_results || 0}</div>`;
+                    resultHtml += `<div class="info">Processing Time: ${data.processing_time || responseTime}ms</div>`;
+                    
+                    if (data._redirected) {
+                        resultHtml += `<div class="info">🔄 This was redirected to structured search</div>`;
+                    }
+                    
+                    if (data.data && data.data.length > 0) {
+                        resultHtml += `<div class="success">🎉 Found ${data.data.length} scholarship(s):</div>`;
+                        data.data.forEach((scholarship, index) => {
+                            resultHtml += `\n--- Scholarship ${index + 1} ---\n`;
+                            resultHtml += `Title: ${scholarship.title || 'N/A'}\n`;
+                            resultHtml += `Type: ${scholarship.scholarship_type || 'N/A'}\n`;
+                            resultHtml += `Country: ${scholarship.host_country || 'N/A'}\n`;
+                            resultHtml += `Degree Levels: ${(scholarship.degree_levels || []).join(', ') || 'N/A'}\n`;
+                            if (scholarship.benefits) {
+                                resultHtml += `Benefits:\n`;
+                                resultHtml += `  Tuition: ${scholarship.benefits.tuition || 'N/A'}\n`;
+                                resultHtml += `  Stipend: ${scholarship.benefits.stipend || 'N/A'}\n`;
+                            }
+                            resultHtml += `Deadline: ${scholarship.application_timeline?.deadline || 'N/A'}\n`;
+                            resultHtml += `Link: ${scholarship.application_link || 'N/A'}\n`;
+                        });
+                    } else {
+                        resultHtml += `<div class="warning">⚠️ No scholarships found</div>`;
+                    }
+                } else {
+                    resultHtml += `<div class="error">❌ Search failed: ${data.message || 'Unknown error'}</div>`;
+                }
+                
+                resultsDiv.className = 'results success';
+                resultsDiv.innerHTML = resultHtml;
+                
+            } catch (error) {
+                resultsDiv.className = 'results error';
+                resultsDiv.innerHTML = `<div class="status">❌ Error</div>Failed to search: ${error.message}`;
+            } finally {
+                button.disabled = false;
+                button.textContent = '🔍 Test Structured Search';
+            }
+        }
+        
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('🧪 Structured Search Test Page Loaded');
+            console.log('Make sure your server is running on http://localhost:3001');
+        });
+    </script>
+</body>
+</html>

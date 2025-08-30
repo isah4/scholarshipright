@@ -19,7 +19,7 @@ exports.StructuredItemSchema = zod_1.z.object({
     citations: zod_1.z.array(exports.CitationSchema).default([])
 });
 exports.StructuredResponseSchema = zod_1.z.object({
-    query: zod_1.z.string(),
+    query: zod_1.z.string().optional(),
     locale: zod_1.z.string().optional(),
     depth: zod_1.z.enum(['fast', 'standard', 'deep']).default('standard'),
     items: zod_1.z.array(exports.StructuredItemSchema).default([]),

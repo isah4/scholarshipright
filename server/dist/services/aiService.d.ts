@@ -6,6 +6,8 @@ export declare class AIService {
     constructor();
     queryExpander(query: string, locale?: string, depth?: 'fast' | 'standard' | 'deep'): Promise<string[]>;
     synthesizeToJson(evidence: any, schema: z.ZodTypeAny, query: string, locale?: string, depth?: 'fast' | 'standard' | 'deep'): Promise<StructuredResponse>;
+    private synthesizeScholarshipData;
+    private repairScholarshipResponse;
     processScholarshipData(rawData: string, query: string): Promise<Scholarship[]>;
     private buildPrompt;
     private validateAndNormalizeData;

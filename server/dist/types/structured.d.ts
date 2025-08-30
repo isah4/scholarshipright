@@ -69,7 +69,7 @@ export declare const StructuredItemSchema: z.ZodObject<{
     }[] | undefined;
 }>;
 export declare const StructuredResponseSchema: z.ZodObject<{
-    query: z.ZodString;
+    query: z.ZodOptional<z.ZodString>;
     locale: z.ZodOptional<z.ZodString>;
     depth: z.ZodDefault<z.ZodEnum<["fast", "standard", "deep"]>>;
     items: z.ZodDefault<z.ZodArray<z.ZodObject<{
@@ -143,7 +143,6 @@ export declare const StructuredResponseSchema: z.ZodObject<{
     }>, "many">>;
     validationErrors: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
 }, "strip", z.ZodTypeAny, {
-    query: string;
     depth: "fast" | "standard" | "deep";
     items: {
         id: string;
@@ -166,10 +165,11 @@ export declare const StructuredResponseSchema: z.ZodObject<{
         snippet: string;
         confidence: number;
     }[];
+    query?: string | undefined;
     locale?: string | undefined;
     validationErrors?: string[] | undefined;
 }, {
-    query: string;
+    query?: string | undefined;
     locale?: string | undefined;
     depth?: "fast" | "standard" | "deep" | undefined;
     items?: {

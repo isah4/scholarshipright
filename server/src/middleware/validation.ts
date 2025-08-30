@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { AnyZodObject, ZodError } from 'zod';
 import { logger } from '../utils/logger';
+import { StructuredSearchRequestSchema } from '../types/validation';
 
 export const validateRequest = (schema: AnyZodObject) => {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -64,4 +65,40 @@ export const validateSearchRequest = (req: Request, res: Response, next: NextFun
   }
   
   return next();
+};
+
+export const validateStructuredSearchRequest = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const validatedRequest = StructuredSearchRequestSchema.parse(req.body);
+    req.body = validatedRequest;
+    return next();
+  } catch (error) {
+    if (error instanceof ZodError) {
+      logger.warn('Structured search validation error', { 
+        errors: error.errors,
+        path: req.path,
+        method: req.method,
+        body: req.body
+      });
+      
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        message: 'Request validation failed',
+        details: error.errors.map(err => ({
+          field: err.path.join('.'),
+          message: err.message
+        })),
+        statusCode: 400
+      });
+    }
+    
+    logger.error('Unexpected structured search validation error', { error, path: req.path });
+    return res.status(400).json({
+      success: false,
+      error: 'VALIDATION_ERROR',
+      message: 'Request validation failed',
+      statusCode: 400
+    });
+  }
 };

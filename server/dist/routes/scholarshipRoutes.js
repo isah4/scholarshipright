@@ -7,7 +7,7 @@ const router = (0, express_1.Router)();
 const scholarshipController = new scholarshipController_1.ScholarshipController();
 router.get('/health', scholarshipController.healthCheck);
 router.post('/search', validation_1.validateSearchRequest, scholarshipController.searchScholarships);
-router.post('/search/structured', scholarshipController.structuredSearch);
+router.post('/search/structured', validation_1.validateStructuredSearchRequest, scholarshipController.structuredSearch);
 router.get('/mock', scholarshipController.getMockScholarships);
 router.get('/validate', scholarshipController.validateQuery);
 exports.default = router;
